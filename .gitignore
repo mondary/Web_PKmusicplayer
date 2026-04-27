@@ -1,0 +1,10 @@
+.agent
+/AGENT.md
+/AGENTS.md
+/CLAUDE.md
+/CODEX.md
+/GEMINI.md
+/GLM.md
+/OPENCODE.md
+.DS_Store
+secrets/config.json

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PK_PLAYER // V4_IMMERSIVE_CANVAS</title>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&f[]=clash-display@600,700&display=swap">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root { --bg: #050505; --text: #FFFFFF; --accent: #E61919; --bezier: cubic-bezier(0.16, 1, 0.3, 1); }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Satoshi', sans-serif; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .bg-blob { position: absolute; width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(230, 25, 25, 0.1) 0%, transparent 70%); top: -20%; left: -20%; filter: blur(100px); animation: drift 20s infinite alternate linear; }
+        @keyframes drift { from { transform: translate(0, 0); } to { transform: translate(20%, 20%); } }
+        .canvas-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 60px; }
+        .main-focus { display: flex; flex-direction: column; align-items: center; gap: 40px; }
+        .album-art-v4 { width: 380px; height: 340px; border-radius: 40px; background: #111; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.5); }
+        .album-art-v4 img { width: 100%; height: 100%; object-fit: cover; }
+        .typography-v4 { text-align: center; }
+        .typography-v4 h1 { font-size: 84px; font-family: 'Clash Display'; letter-spacing: -0.05em; line-height: 0.8; }
+        .immersive-controls { display: flex; gap: 60px; align-items: center; }
+        .play-btn-v4 { width: 100px; height: 100px; background: var(--text); color: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    </style>
+</head>
+<body>
+    <div class="bg-canvas"><div class="bg-blob"></div></div>
+    <div class="canvas-container">
+        <header style="width:100%; display:flex; justify-content:space-between;"><div style="font-family:'Clash Display'; font-size:24px; font-weight:700;">PK_PKM</div><i class="ph-bold ph-list" style="font-size: 24px;"></i></header>
+        <div class="main-focus">
+            <div class="album-art-v4"><img src="https://picsum.photos/seed/night/800/800"></div>
+            <div class="typography-v4"><p style="opacity:0.5; letter-spacing:0.2em; margin-bottom:10px;">NOW_PLAYING</p><h1>Midnight Phonk</h1><p style="font-size:24px; opacity:0.5; margin-top:10px;">Kavinsky</p></div>
+        </div>
+        <div class="immersive-controls"><i class="ph-bold ph-skip-back" style="font-size:32px;"></i><div class="play-btn-v4"><i class="ph-fill ph-play"></i></div><i class="ph-bold ph-skip-forward" style="font-size:32px;"></i></div>
+    </div>
+</body>
+</html>

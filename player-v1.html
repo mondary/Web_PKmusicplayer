@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PK-TERMINAL // V1_HACKER_GREEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0A0A0A;
+            --terminal-green: #4AF626;
+            --terminal-glow: rgba(74, 246, 38, 0.15);
+            --scanline-color: rgba(18, 16, 16, 0.2);
+            --font-pixel: 'Press Start 2P', cursive;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--terminal-green);
+            font-family: var(--font-pixel);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-transform: uppercase;
+            image-rendering: pixelated;
+        }
+
+        /* --- CRT EFFECTS --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                var(--scanline-color) 50%,
+                rgba(0, 0, 0, 0) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .crt-flicker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 16, 16, 0.05);
+            z-index: 101;
+            pointer-events: none;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 0.1; }
+        }
+
+        .screen-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 100px var(--terminal-glow);
+            pointer-events: none;
+            z-index: 102;
+        }
+
+        /* --- PLAYER UI --- */
+        .player-container {
+            width: 480px;
+            border: 4px solid var(--terminal-green);
+            padding: 32px;
+            position: relative;
+            background: var(--bg-color);
+            box-shadow: 0 0 20px var(--terminal-glow);
+        }
+
+        .header {
+            font-size: 10px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--terminal-green);
+            padding-bottom: 8px;
+        }
+
+        .track-info {
+            margin-bottom: 32px;
+        }
+
+        .track-status {
+            font-size: 8px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        .track-name {
+            font-size: 18px;
+            line-height: 1.4;
+            height: 50px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 32px;
+        }
+
+        .progress-bar {
+            height: 24px;
+            border: 2px solid var(--terminal-green);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--terminal-green);
+            width: 40%; /* Demo state */
+            box-shadow: 0 0 10px var(--terminal-green);
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-top: 12px;
+        }
+
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid var(--terminal-green);
+            color: var(--terminal-green);
+            font-family: var(--font-pixel);
+            padding: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.1s;
+        }
+
+        .btn:hover {
+            background: var(--terminal-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px var(--terminal-green);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-play {
+            grid-column: span 1;
+        }
+
+        /* Visualizer (Minimal) */
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+            margin-top: 24px;
+        }
+
+        .vis-bar {
+            flex: 1;
+            background-color: var(--terminal-green);
+            min-height: 2px;
+            animation: vis-grow 0.5s infinite ease-in-out alternate;
+        }
+
+        @keyframes vis-grow {
+            from { height: 10%; }
+            to { height: 100%; }
+        }
+
+        .vis-bar:nth-child(2n) { animation-delay: 0.1s; }
+        .vis-bar:nth-child(3n) { animation-delay: 0.2s; }
+        .vis-bar:nth-child(4n) { animation-delay: 0.3s; }
+
+        /* Tactical Decoration */
+        .deco-corners::before, .deco-corners::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--terminal-green);
+        }
+
+        .deco-corners::before { top: -10px; left: -10px; border-right: 0; border-bottom: 0; }
+        .deco-corners::after { bottom: -10px; right: -10px; border-left: 0; border-top: 0; }
+
+        .system-id {
+            position: absolute;
+            bottom: -25px;
+            right: 0;
+            font-size: 8px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="crt-flicker"></div>
+    <div class="screen-glow"></div>
+
+    <div class="player-container">
+        <div class="deco-corners"></div>
+        
+        <div class="header">
+            <span>[ PK-AUDIO-V1.0 ]</span>
+            <span>REV_2026.04</span>
+        </div>
+
+        <div class="track-info">
+            <div class="track-status">>>> NOW_PLAYING</div>
+            <div class="track-name" id="trackName">CYBER_PHONK_2077.MP3</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="time-display">
+                <span id="currentTime">01:42</span>
+                <span id="totalTime">03:55</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="prevBtn"><<</button>
+            <button class="btn btn-play" id="playBtn">PLAY</button>
+            <button class="btn" id="nextBtn">>></button>
+        </div>
+
+        <div class="visualizer">
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+            <div class="vis-bar"></div>
+        </div>
+
+        <div class="system-id">ID: PK_PKM_TERMINAL_ROOT</div>
+    </div>
+
+    <script>
+        const playBtn = document.getElementById('playBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
+        let isPlaying = false;
+
+        playBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            playBtn.textContent = isPlaying ? 'PAUSE' : 'PLAY';
+            const bars = document.querySelectorAll('.vis-bar');
+            bars.forEach(bar => {
+                bar.style.animationPlayState = isPlaying ? 'running' : 'paused';
+            });
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            progressFill.style.width = (pos * 100) + '%';
+        });
+
+        document.querySelectorAll('.vis-bar').forEach(bar => {
+            bar.style.animationPlayState = 'paused';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PK Player V2</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="src/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="logo">PK_PLAYER</div>
+
+      <div class="nav-label">Browse</div>
+      <div class="nav-row" role="tablist" aria-label="Browse mode">
+        <button id="tabPlaylists" class="nav-btn" role="tab" type="button" aria-selected="true">Playlists</button>
+        <button id="tabArtists" class="nav-btn" role="tab" type="button" aria-selected="false">Artists</button>
+      </div>
+
+      <div class="sideblock">
+        <div id="playlistPane">
+          <div class="nav-label">Playlists</div>
+          <div id="playlistList" class="list" role="list"></div>
+        </div>
+
+        <div id="artistPane" hidden>
+          <div class="nav-label">Artists</div>
+          <div id="artistList" class="list" role="list"></div>
+          <div class="nav-label" style="margin-top: 14px">Albums</div>
+          <div id="albumList" class="list" role="list"></div>
+        </div>
+      </div>
+
+      <div class="nav-label">Actions</div>
+      <div class="nav-row">
+        <button id="btnImport" class="btn btn--primary" type="button">Import MD</button>
+        <button id="btnLoadDemo" class="btn" type="button">Load demo</button>
+      </div>
+      <div class="nav-row">
+        <button id="btnExport" class="btn" type="button" disabled>Export active</button>
+        <button id="btnOptions" class="btn" type="button">Options</button>
+      </div>
+    </aside>
+
+    <main class="main" aria-label="Main">
+      <div class="head">
+        <div>
+          <div id="activePlaylistTitle" class="h1">No playlist loaded</div>
+          <div id="activePlaylistMeta" class="meta"></div>
+        </div>
+        <div class="tools">
+          <label class="field">
+            <span class="field__label">Search</span>
+            <input id="trackFilter" class="field__input" autocomplete="off" placeholder="artist, title, album..." />
+          </label>
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="thead">
+          <div>#</div>
+          <div>Artist</div>
+          <div>Title</div>
+          <div>Album</div>
+          <div>Year</div>
+          <div>State</div>
+        </div>
+        <div id="trackRows" class="tbody"></div>
+      </div>
+    </main>
+
+    <footer class="player-bar" aria-label="Player">
+      <div class="pinfo">
+        <b id="nowTitle">—</b>
+        <span id="nowSub">—</span>
+      </div>
+      <div class="pctrl">
+        <div class="ctrls">
+          <button id="btnPrev" class="iconbtn" type="button" aria-label="Previous">Prev</button>
+          <button id="btnPlayPause" class="iconbtn iconbtn--primary" type="button" aria-label="Play/Pause">
+            <span id="playPauseGlyph">Play</span>
+          </button>
+          <button id="btnNext" class="iconbtn" type="button" aria-label="Next">Next</button>
+        </div>
+        <button id="progressBar" class="seek" type="button" aria-label="Seek">
+          <div id="progressFill" style="width: 0%"></div>
+        </button>
+        <div class="ptime">
+          <span id="timeCur">0:00</span>
+          <span>·</span>
+          <span id="timeDur">0:00</span>
+        </div>
+      </div>
+      <div class="pright">
+        <label class="vol">
+          <span>Vol</span>
+          <input id="vol" type="range" min="0" max="100" step="1" />
+        </label>
+        <button id="btnFind" class="btn" type="button" disabled>Find</button>
+        <button id="btnCopy" class="btn" type="button" disabled>Copy</button>
+      </div>
+    </footer>
+
+    <input id="fileInput" type="file" accept=".md,text/markdown" multiple hidden />
+
+    <aside id="drawer" class="drawer" aria-label="Options" aria-hidden="true" inert>
+      <div class="drawer__panel" role="dialog" aria-modal="true" aria-label="Options panel">
+        <div class="drawer__head">
+          <div class="drawer__title">OPTIONS</div>
+          <button id="btnDrawerClose" class="btn" type="button">Close</button>
+        </div>
+
+        <div class="drawer__body">
+          <div class="drawer__section">
+            <div class="drawer__k">YOUTUBE DATA API</div>
+            <div class="drawer__p">Optional. Enables future auto-search/replace. Not required for playback.</div>
+            <label class="field">
+              <span class="field__label">API KEY</span>
+              <input id="optYtKey" class="field__input" autocomplete="off" placeholder="AIza..." />
+            </label>
+            <div class="drawer__k" style="margin-top: 12px">WHERE TO GET IT (STEP-BY-STEP)</div>
+            <ol class="steps__list">
+              <li>
+                Open Google Cloud Console:
+                <a class="alink" href="https://console.cloud.google.com/" target="_blank" rel="noreferrer noopener">console.cloud.google.com</a>
+              </li>
+              <li>
+                Create/select a project:
+                <a class="alink" href="https://console.cloud.google.com/projectselector2/home/dashboard" target="_blank" rel="noreferrer noopener">project selector</a>
+              </li>
+              <li>
+                Enable YouTube Data API v3 (Library):
+                <a class="alink" href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noreferrer noopener">API Library</a>
+              </li>
+              <li>
+                Create API key (Credentials):
+                <a class="alink" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer noopener">Credentials</a>
+              </li>
+              <li>
+                Restrict key (recommended): in Credentials → select key → set <span class="code">Application restrictions</span> and <span class="code">API restrictions</span>.
+              </li>
+            </ol>
+            <div class="drawer__p">Tip: local-only test: leave unrestricted short time, then lock down.</div>
+          </div>
+
+          <div class="drawer__section">
+            <div class="drawer__k">OTHER FREE SOURCES (PLACEHOLDERS)</div>
+            <div class="drawer__p">Not wired yet. Fields stored for later integration.</div>
+            <label class="field">
+              <span class="field__label">JAMENDO CLIENT ID</span>
+              <input id="optJamendo" class="field__input" autocomplete="off" placeholder="client_id" />
+            </label>
+            <label class="field">
+              <span class="field__label">SOUNDCLOUD CLIENT ID</span>
+              <input id="optSoundcloud" class="field__input" autocomplete="off" placeholder="client_id" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <dialog id="dlgSearch" class="dialog">
+      <form method="dialog" class="dialog__panel">
+        <div class="dialog__head">
+          <div class="dialog__title">Find on YouTube</div>
+          <button class="iconbtn" value="cancel" aria-label="Close" type="submit">Close</button>
+        </div>
+        <div class="dialog__body">
+          <div id="searchHint" class="meta"></div>
+          <div class="grid2">
+            <div class="card">
+              <div class="card__title">1) Open search</div>
+              <div class="drawer__p">Opens YouTube search in a new tab for this track.</div>
+              <div class="card__actions">
+                <button id="btnOpenSearch" class="btn btn--primary" type="button">Open YouTube search</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card__title">2) Paste link</div>
+              <div class="drawer__p">Paste YouTube URL or video id, then apply.</div>
+              <label class="field" style="margin-top: 10px">
+                <span class="field__label">YouTube URL / ID</span>
+                <input id="pasteUrl" class="field__input" autocomplete="off" placeholder="https://www.youtube.com/watch?v=..." />
+              </label>
+              <div class="card__actions">
+                <button id="btnApplyLink" class="btn btn--primary" type="button">Use this link</button>
+                <button id="btnClearLink" class="btn" type="button">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dialog__foot">
+          <button class="btn" value="cancel" type="submit">Close</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
+    <div id="ytPlayerHost" style="position:absolute;left:-9999px;top:-9999px;width:2px;height:2px;overflow:hidden" aria-hidden="true"></div>
+
+    <script type="module" src="src/app.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+  </body>
+</html>
