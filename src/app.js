@@ -287,7 +287,7 @@ if (els.optJamendo) els.optJamendo.value = store.apis.jamendoClientId ?? "";
 if (els.optSoundcloud) els.optSoundcloud.value = store.apis.soundcloudClientId ?? "";
 
 function setNavMode(mode) {
-  store.nav.mode = mode;
+  store.nav.mode = mode === "artists" ? "artists" : "playlists";
   saveStore();
   render();
 }
@@ -535,8 +535,14 @@ function render() {
   const mode = store.nav?.mode === "artists" ? "artists" : "playlists";
   els.tabPlaylists?.setAttribute("aria-selected", mode === "playlists" ? "true" : "false");
   els.tabArtists?.setAttribute("aria-selected", mode === "artists" ? "true" : "false");
-  if (els.playlistPane) els.playlistPane.hidden = mode !== "playlists";
-  if (els.artistPane) els.artistPane.hidden = mode !== "artists";
+  if (els.playlistPane) {
+    els.playlistPane.hidden = mode !== "playlists";
+    els.playlistPane.style.display = mode === "playlists" ? "flex" : "none";
+  }
+  if (els.artistPane) {
+    els.artistPane.hidden = mode !== "artists";
+    els.artistPane.style.display = mode === "artists" ? "flex" : "none";
+  }
 
   if (els.playlistList) {
     els.playlistList.innerHTML = "";
@@ -634,7 +640,16 @@ function render() {
     const a = lib3.artists.find((x) => x.key === store.nav.artist) || null;
     const al = a?.albumList?.find((x) => x.key === store.nav.album) || null;
     tracks = (al?.tracks ?? []).map((t, idx) => ({ ...t, idx: idx + 1 })).filter((t) => matchesFilter(t, q));
-    if (!tracks.length) return;
+    if (!tracks.length) {
+      const empty = document.createElement("div");
+      empty.className = "meta";
+      empty.style.padding = "12px 14px";
+      empty.textContent = lib3.artists.length
+        ? "No tracks for selected album."
+        : "No artists yet. Load demo or import playlists.";
+      els.trackRows.appendChild(empty);
+      return;
+    }
     if (!store.activeTrackId) {
       store.activeTrackId = tracks[0].id;
       saveStore();
@@ -646,8 +661,10 @@ function render() {
     row.className = "row" + (t.id === store.activeTrackId ? " row--active" : "");
     row.innerHTML = `
       <div class="row__idx">${t.idx}</div>
-      <div>${t.artist ? `<span class="row__title">${escapeHtml(t.artist)}</span>` : `<span class="meta">—</span>`}</div>
-      <div>${t.title ? `<span class="row__title">${escapeHtml(t.title)}</span>` : `<span class="meta">—</span>`}</div>
+      <div>
+        ${t.title ? `<span class="row__title">${escapeHtml(t.title)}</span>` : `<span class="meta">—</span>`}
+        ${t.artist ? `<span class="row__sub">${escapeHtml(t.artist)}</span>` : ""}
+      </div>
       <div>${t.album ? escapeHtml(t.album) : `<span class="meta">—</span>`}</div>
       <div>${t.year ?? `<span class="meta">—</span>`}</div>
       <div>${renderStatusTag(t)}</div>
@@ -786,8 +803,11 @@ function cueTrack(t, { autoplay }) {
   saveStore();
   render();
   try {
-    ytPlayer.cueVideoById(t.youtubeId);
-    if (autoplay) ytPlayer.playVideo();
+    if (autoplay) {
+      ytPlayer.loadVideoById(t.youtubeId);
+    } else {
+      ytPlayer.cueVideoById(t.youtubeId);
+    }
   } catch (e) {
     toast("Player error", String(e?.message ?? e), "bad");
   }
