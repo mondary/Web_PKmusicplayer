@@ -1,5 +1,13 @@
-// moved from /app.js (root) to /src/app.js
-// NOTE: internal fetches use absolute paths (/) so this file can live under /src.
+const APP_BASE_URL = new URL("./", import.meta.url);
+const PROJECT_BASE_URL = new URL("../", APP_BASE_URL);
+
+function appAssetUrl(path) {
+  return new URL(path, APP_BASE_URL);
+}
+
+function projectAssetUrl(path) {
+  return new URL(path, PROJECT_BASE_URL);
+}
 
 const STORE_KEY = "pkmp.v1";
 
@@ -288,7 +296,7 @@ els.tabArtists?.addEventListener("click", () => setNavMode("artists"));
 
 async function loadSecretsConfig() {
   try {
-    const res = await fetch("/secrets/config.json", { cache: "no-store" });
+    const res = await fetch(projectAssetUrl("secrets/config.json"), { cache: "no-store" });
     if (!res.ok) return;
     const cfg = await res.json();
     const yt = String(cfg?.youtubeApiKey ?? "").trim();
@@ -357,6 +365,19 @@ function findTrackRefById(trackId) {
 function getActiveTrack() {
   const ref = findTrackRefById(store.activeTrackId);
   return ref?.track ?? null;
+}
+
+function getCurrentTrackList() {
+  const mode = store.nav?.mode === "artists" ? "artists" : "playlists";
+  if (mode === "playlists") {
+    const pl = getActivePlaylist();
+    return pl?.tracks ?? [];
+  }
+
+  const lib = buildLibrary();
+  const a = lib.artists.find((x) => x.key === store.nav.artist) || null;
+  const al = a?.albumList?.find((x) => x.key === store.nav.album) || null;
+  return al?.tracks ?? [];
 }
 
 function setActivePlaylist(id) {
@@ -687,13 +708,13 @@ els.btnExport.addEventListener("click", () => {
 
 els.btnLoadDemo.addEventListener("click", async () => {
   try {
-    const res = await fetch("/playlists/index.json", { cache: "no-store" });
+    const res = await fetch(appAssetUrl("playlists/index.json"), { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const idx = await res.json();
     if (!Array.isArray(idx?.files) || idx.files.length === 0) throw new Error("No demo files");
     const imported = [];
     for (const file of idx.files) {
-      const r = await fetch(`/playlists/${file}`, { cache: "no-store" });
+      const r = await fetch(appAssetUrl(`playlists/${file}`), { cache: "no-store" });
       if (!r.ok) continue;
       const text = await r.text();
       imported.push(parsePlaylistMd(text, file));
@@ -797,6 +818,7 @@ function setVolume(v) {
 els.btnPlayPause.addEventListener("click", () => {
   if (!ytPlayer) return;
   const t = getActiveTrack();
+  if (t?.youtube && !t.youtubeId) t.youtubeId = parseYouTubeId(t.youtube);
   if (!t?.youtubeId) {
     const key = String(store.apis?.youtubeKey ?? "").trim();
     if (!key) {
@@ -839,21 +861,23 @@ els.progressBar.addEventListener("click", (ev) => {
 });
 
 function prev() {
-  const pl = getActivePlaylist();
+  const tracks = getCurrentTrackList();
   const t = getActiveTrack();
-  if (!pl || !t) return;
-  const idx = pl.tracks.findIndex((x) => x.id === t.id);
-  const nextIdx = idx <= 0 ? pl.tracks.length - 1 : idx - 1;
-  setActiveTrack(pl.tracks[nextIdx].id, { autoplay: true });
+  if (!tracks.length || !t) return;
+  const idx = tracks.findIndex((x) => x.id === t.id);
+  if (idx === -1) return;
+  const nextIdx = idx <= 0 ? tracks.length - 1 : idx - 1;
+  setActiveTrack(tracks[nextIdx].id, { autoplay: true });
 }
 
 function next() {
-  const pl = getActivePlaylist();
+  const tracks = getCurrentTrackList();
   const t = getActiveTrack();
-  if (!pl || !t) return;
-  const idx = pl.tracks.findIndex((x) => x.id === t.id);
-  const nextIdx = idx >= pl.tracks.length - 1 ? 0 : idx + 1;
-  setActiveTrack(pl.tracks[nextIdx].id, { autoplay: true });
+  if (!tracks.length || !t) return;
+  const idx = tracks.findIndex((x) => x.id === t.id);
+  if (idx === -1) return;
+  const nextIdx = idx >= tracks.length - 1 ? 0 : idx + 1;
+  setActiveTrack(tracks[nextIdx].id, { autoplay: true });
 }
 
 els.trackFilter.addEventListener("input", () => render());
@@ -927,10 +951,14 @@ els.btnClearLink.addEventListener("click", () => {
 });
 
 // init
+for (const pl of store.playlists ?? []) {
+  for (const t of pl.tracks ?? []) {
+    t.youtubeId = parseYouTubeId(t.youtube);
+  }
+}
 if (!store.activePlaylistId && store.playlists[0]) store.activePlaylistId = store.playlists[0].id;
 const pl0 = getActivePlaylist();
 if (pl0 && !store.activeTrackId) store.activeTrackId = pl0.tracks[0]?.id ?? null;
 saveStore();
 loadSecretsConfig();
 render();
-
