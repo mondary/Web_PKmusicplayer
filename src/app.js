@@ -55,6 +55,12 @@ function trackLabel(t) {
   return `${a} — ${ti}`;
 }
 
+function getTrackCoverUrl(t) {
+  const id = t?.youtubeId || parseYouTubeId(t?.youtube);
+  if (!id) return null;
+  return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+}
+
 function mdEscape(s) {
   return String(s ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ").trim();
 }
@@ -277,6 +283,8 @@ const els = {
   pasteUrl: document.getElementById("pasteUrl"),
   btnApplyLink: document.getElementById("btnApplyLink"),
   btnClearLink: document.getElementById("btnClearLink"),
+  focusArt: document.getElementById("focusArt"),
+  focusArtFallback: document.getElementById("focusArtFallback"),
 };
 
 els.vol.value = String(store.volume ?? 70);
@@ -287,10 +295,16 @@ if (els.optJamendo) els.optJamendo.value = store.apis.jamendoClientId ?? "";
 if (els.optSoundcloud) els.optSoundcloud.value = store.apis.soundcloudClientId ?? "";
 
 function setNavMode(mode) {
-  store.nav.mode = mode === "artists" ? "artists" : "playlists";
+  const nextMode = mode === "artists" ? "artists" : "playlists";
+  store.nav.mode = nextMode;
+  if (els.tabPlaylists) els.tabPlaylists.setAttribute("aria-selected", nextMode === "playlists" ? "true" : "false");
+  if (els.tabArtists) els.tabArtists.setAttribute("aria-selected", nextMode === "artists" ? "true" : "false");
+  if (els.playlistPane) els.playlistPane.hidden = nextMode !== "playlists";
+  if (els.artistPane) els.artistPane.hidden = nextMode !== "artists";
   saveStore();
   render();
 }
+window.__pkSetNavMode = setNavMode;
 els.tabPlaylists?.addEventListener("click", () => setNavMode("playlists"));
 els.tabArtists?.addEventListener("click", () => setNavMode("artists"));
 
@@ -535,14 +549,8 @@ function render() {
   const mode = store.nav?.mode === "artists" ? "artists" : "playlists";
   els.tabPlaylists?.setAttribute("aria-selected", mode === "playlists" ? "true" : "false");
   els.tabArtists?.setAttribute("aria-selected", mode === "artists" ? "true" : "false");
-  if (els.playlistPane) {
-    els.playlistPane.hidden = mode !== "playlists";
-    els.playlistPane.style.display = mode === "playlists" ? "flex" : "none";
-  }
-  if (els.artistPane) {
-    els.artistPane.hidden = mode !== "artists";
-    els.artistPane.style.display = mode === "artists" ? "flex" : "none";
-  }
+  if (els.playlistPane) els.playlistPane.hidden = mode !== "playlists";
+  if (els.artistPane) els.artistPane.hidden = mode !== "artists";
 
   if (els.playlistList) {
     els.playlistList.innerHTML = "";
@@ -657,13 +665,17 @@ function render() {
   }
 
   for (const t of tracks) {
+    const cover = getTrackCoverUrl(t);
     const row = document.createElement("div");
     row.className = "row" + (t.id === store.activeTrackId ? " row--active" : "");
     row.innerHTML = `
       <div class="row__idx">${t.idx}</div>
-      <div>
-        ${t.title ? `<span class="row__title">${escapeHtml(t.title)}</span>` : `<span class="meta">—</span>`}
-        ${t.artist ? `<span class="row__sub">${escapeHtml(t.artist)}</span>` : ""}
+      <div class="row__track">
+        <img class="row__cover" src="${escapeHtml(cover || "")}" alt="" ${cover ? "" : "hidden"} />
+        <div>
+          ${t.title ? `<span class="row__title">${escapeHtml(t.title)}</span>` : `<span class="meta">—</span>`}
+          ${t.artist ? `<span class="row__sub">${escapeHtml(t.artist)}</span>` : ""}
+        </div>
       </div>
       <div>${t.album ? escapeHtml(t.album) : `<span class="meta">—</span>`}</div>
       <div>${t.year ?? `<span class="meta">—</span>`}</div>
@@ -677,9 +689,26 @@ function render() {
   if (!at) {
     els.nowTitle.textContent = "—";
     els.nowSub.textContent = "—";
+    if (els.focusArt) {
+      els.focusArt.hidden = true;
+      els.focusArt.removeAttribute("src");
+    }
+    if (els.focusArtFallback) els.focusArtFallback.hidden = false;
   } else {
     els.nowTitle.textContent = at.title || "Unknown title";
     els.nowSub.textContent = `${at.artist || "Unknown artist"}${at.album ? ` · ${at.album}` : ""}${at.year ? ` · ${at.year}` : ""}`;
+    const cover = getTrackCoverUrl(at);
+    if (els.focusArt && cover) {
+      els.focusArt.src = cover;
+      els.focusArt.hidden = false;
+      if (els.focusArtFallback) els.focusArtFallback.hidden = true;
+    } else {
+      if (els.focusArt) {
+        els.focusArt.hidden = true;
+        els.focusArt.removeAttribute("src");
+      }
+      if (els.focusArtFallback) els.focusArtFallback.hidden = false;
+    }
   }
 }
 

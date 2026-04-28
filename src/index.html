@@ -6,7 +6,7 @@
     <title>PK Player</title>
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&f[]=clash-display@500,600,700&display=swap" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260428c" />
   </head>
   <body>
     <div id="app">
@@ -15,8 +15,8 @@
           <div class="logo">PK_PKM</div>
 
           <div class="tabs">
-            <button id="tabPlaylists" class="tab" role="tab" type="button" aria-selected="true">Playlists</button>
-            <button id="tabArtists" class="tab" role="tab" type="button" aria-selected="false">Artists</button>
+            <button id="tabPlaylists" class="tab" role="tab" type="button" aria-selected="true" onclick="window.__pkSetNavMode && window.__pkSetNavMode('playlists')">Playlists</button>
+            <button id="tabArtists" class="tab" role="tab" type="button" aria-selected="false" onclick="window.__pkSetNavMode && window.__pkSetNavMode('artists')">Artists</button>
           </div>
 
           <div class="sidebar__content">
@@ -33,15 +33,6 @@
             </div>
           </div>
 
-          <div class="actions">
-            <span class="section-title">Actions</span>
-            <div class="actions__grid">
-              <button id="btnImport" class="tbtn tbtn--primary">Import MD</button>
-              <button id="btnLoadDemo" class="tbtn">Load demo</button>
-              <button id="btnExport" class="tbtn" disabled>Export active</button>
-              <button id="btnOptions" class="tbtn">Options</button>
-            </div>
-          </div>
         </aside>
 
         <main class="main-content pane">
@@ -70,7 +61,8 @@
 
         <aside class="player-panel pane">
           <div class="album-art-focus fade-in" style="animation-delay:0.1s">
-            <div class="album-art__placeholder">PK</div>
+            <img id="focusArt" class="album-art__img" alt="Album cover" hidden />
+            <div id="focusArtFallback" class="album-art__placeholder">PK</div>
           </div>
 
           <div class="current-meta fade-in" style="animation-delay:0.15s">
@@ -105,6 +97,14 @@
               <button id="btnFind" class="tbtn" disabled>Find</button>
               <button id="btnCopy" class="tbtn" disabled>Copy</button>
             </div>
+
+            <div class="quick-actions" aria-label="Quick actions">
+              <button id="btnImport" class="icon-action" type="button" title="Import MD" aria-label="Import MD">⤓</button>
+              <button id="btnLoadDemo" class="icon-action" type="button" title="Load demo" aria-label="Load demo">◉</button>
+              <button id="btnExport" class="icon-action" type="button" title="Export active" aria-label="Export active" disabled>⤒</button>
+              <button id="btnOptions" class="icon-action" type="button" title="Options" aria-label="Options">⚙</button>
+            </div>
+            <div class="ui-build-tag">UI build 2026-04-28B</div>
           </div>
         </aside>
       </div>
@@ -184,7 +184,7 @@
     <div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
     <div id="ytPlayerHost" style="position:absolute;left:-9999px;top:-9999px;width:2px;height:2px;overflow:hidden" aria-hidden="true"></div>
 
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=20260428c"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>
